@@ -137,15 +137,15 @@ public class Movement {
     }
 
     public static void encounter(){
-        movesBeforeEncounter = 0; //chances 10 30 60
+        movesBeforeEncounter = 0;
         moveRand = (int)(Math.random() * 100) + 1;
         Encounters encounter = new Encounters();
-        if(moveRand <= 8){
+        if(moveRand <= 5){
             System.out.println("Wander encounter");
             Save.setMapAtPos(x, y, "NULL", null);
             encounter.generateWandererShop();
         }
-        else if((moveRand >= 70) && checkForExisting() == -1){
+        else if((moveRand >= 80) && checkForExisting() == -1){
             System.out.println("City encounter");
             encounter.generateCity();
         }

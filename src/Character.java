@@ -4,7 +4,6 @@ import java.util.Arrays;
 
 public class Character {
 
-    private String[] classes = {"Swordsman", "Archer", "Mage"};
     private int playerClass; //Classes 0-2, 0 = swordsman, 1 = archer, 2 = mage
     private int coins;
     private int xp;
@@ -19,13 +18,15 @@ public class Character {
     private int[] killCounters = {0, 0, 0, 0, 0, 0};
     private int[] activeQuest = {-1, 0, 0, 0, 0, 0};
     //enemy type (-1 means no quest), amnt to kill, reward, start amount, city x, city y
+    private boolean questNotified = false;
     private Object[][] inventory = new Object[20][2]; //[20 inv slots.] [Name, number]
     private Object[][] armor = new Object[4][2]; //[4 armor slots] [Name, protection]
     private Object[] weapon; //[Name, damage]
     //armor names should be structured like: Material, Piece. EX: Iron Boots
     //Following vars are naming schemes
-    private String[] armorPieces = {"Helmet", "Chestplate", "Leggings", "Boots"}; //4 armor pieces
-    private String[] weapons = {"Sword", "Bow", "Wand"};
+    private final String[] CLASSES = {"Swordsman", "Archer", "Mage"};
+    private final String[] ARMOR_PIECES = {"Helmet", "Chestplate", "Leggings", "Boots"}; //4 armor pieces
+    private final String[] WEAPONS = {"Sword", "Bow", "Wand"};
     private final Object[] DEFAULT_EMPTY = {"EMPTY", 0};
 
 
@@ -39,6 +40,8 @@ public class Character {
         armorRating = 0;
         xpNeeded = 20;
         level = 0;
+        defense = 0;
+        strength = 0;
         for (int i = 0; i < inventory.length; i++) { //inventory
             inventory[i] = DEFAULT_EMPTY;
         }
@@ -50,7 +53,7 @@ public class Character {
 
     public void setPlayerClass(int c){
         playerClass = c;
-        System.out.println("Class changed to " + c + ": " + classes[c]);
+        System.out.println("Class changed to " + c + ": " + CLASSES[c]);
         if (c == 0){
             addInventory("Basic Sword", 2);
         }else if (c == 1){
@@ -85,7 +88,7 @@ public class Character {
     }
 
     public String[] getClasses(){
-        return classes;
+        return CLASSES;
     }
 
     public int getXpNeeded() {
@@ -98,20 +101,22 @@ public class Character {
 
     public void addStrength(int s){
         strength += s;
+        attackStrength += strength;
     }
 
     public void addDefense(int d){
         defense += d;
+        armorRating += defense;
     }
 
     public void addCoins(int c){
         coins += c;
-        JOptionPane.showMessageDialog(null, c + " coins added. Total: " + coins);
+        System.out.println(c + " coins added. Total: " + coins);
     }
 
     public void addXp(int c){
         xp += c;
-        JOptionPane.showMessageDialog(null, c + " xp added. Total: " + xp);
+        System.out.println(c + " xp added. Total: " + xp);
     }
 
     public boolean addInventory(String name, int number){
@@ -119,9 +124,9 @@ public class Character {
         for (int i = 0; i < inventory.length; i++){ //go thru all inventory items
             if (!itemPlaced) {
                 String item = inventory[i][0].toString();
-                if (item.equals(name) && !item.contains(armorPieces[0]) && !item.contains(armorPieces[1]) &&
-                        !item.contains(armorPieces[2]) && !item.contains(armorPieces[3]) &&
-                        !item.contains(weapons[0]) && !item.contains(weapons[1]) && !item.contains(weapons[2])) {
+                if (item.equals(name) && !item.contains(ARMOR_PIECES[0]) && !item.contains(ARMOR_PIECES[1]) &&
+                        !item.contains(ARMOR_PIECES[2]) && !item.contains(ARMOR_PIECES[3]) &&
+                        !item.contains(WEAPONS[0]) && !item.contains(WEAPONS[1]) && !item.contains(WEAPONS[2])) {
                     //if the item at i slot is the same as the one being added, and does not contain armor
                     int num2 = Integer.parseInt(String.valueOf(inventory[i][1])); //current number of items in inv
                     Object[] inventoryItem = {name, number + num2}; //add them together and
@@ -141,7 +146,10 @@ public class Character {
         for (int i = 0; i < inventory.length; i++){ //go thru all inventory items
             if (Arrays.equals(item, inventory[i])) {
                 Object[] inventoryItem = {inventory[i][0], (int)inventory[i][1] + number}; //add them together and
+                String display = inventory[i][0] + " [" + inventory[i][1] + "] upgraded by " + number + " to: ";
                 inventory[i] = inventoryItem; //put upgraded item in the slot
+                display += inventory[i][0] + " [" + inventory[i][1] + "]";
+                JOptionPane.showMessageDialog(null, display);
                 return;
             }
         }
@@ -151,14 +159,25 @@ public class Character {
         for (int i = 0; i < armor.length; i++){ //go thru all armor items
             if (Arrays.equals(item, armor[i])) {
                 Object[] inventoryItem = {armor[i][0], (int)armor[i][1] + number}; //add them together and
+                String display = armor[i][0] + " [" + armor[i][1] + "] upgraded by " + number + " to: ";
                 armor[i] = inventoryItem; //put upgraded item in the slot
+                display += armor[i][0] + " [" + armor[i][1] + "]";
+                JOptionPane.showMessageDialog(null, display);
+                armorRating = defense;
+                for (int a = 0; a < armor.length; a++){
+                    armorRating += (int)armor[a][1];
+                    System.out.println(armorRating);
+                }
                 return;
             }
         }
     }
 
     public void upgradeWeaponItem(int number){
+        String display = weapon[0] + " [" + weapon[1] + "] upgraded by " + number + " to: ";
         weapon = new Object[]{weapon[0], (int) weapon[1] + number}; //put upgraded item in the slot
+        display += weapon[0] + " [" + weapon[1] + "]";
+        JOptionPane.showMessageDialog(null, display);
     }
 
     public Object[] equip(String name, int value){
@@ -166,29 +185,29 @@ public class Character {
         Object[] prev = DEFAULT_EMPTY;
 
         for (int i = 0; i < armor.length; i++){
-            if (name.contains(armorPieces[i])){ //checks name of item to put in correct slot
+            if (name.contains(ARMOR_PIECES[i])){ //checks name of item to put in correct slot
                 prev = armor[i]; //saves item in that slot so it can be returned to inv
                 Object[] curr = {name, value}; //current
                 armor[i] = curr;
-                System.out.println(name + " added to " + armorPieces[i]);
+                System.out.println(name + " added to " + ARMOR_PIECES[i]);
                 System.out.println(getArmorString());
             }
         }
-        armorRating = 0;
+        armorRating = defense;
         for (int a = 0; a < armor.length; a++){
-            armorRating = armorRating + (int)armor[a][1];
+            armorRating += (int)armor[a][1];
             System.out.println(armorRating);
         }
-        if (name.contains(weapons[0])||name.contains(weapons[1])||name.contains(weapons[2])){ //checks if it is a weapon
+        if (name.contains(WEAPONS[0])||name.contains(WEAPONS[1])||name.contains(WEAPONS[2])){ //checks if it is a weapon
             prev = weapon; //saves item in that slot so it can be returned to inv
             Object[] curr = {name, value}; //current
             weapon = curr;
-            if (name.contains(weapons[playerClass])){
-                attackStrength = (int)(value * 1.5);
+            if (name.contains(WEAPONS[playerClass])){
+                attackStrength = ((int)(value * 1.5)) + strength;
                 System.out.println("Equipped weapon base: " + value + "\nWith class bonus: " + attackStrength);
             }
             else {
-                attackStrength = value;
+                attackStrength = value + strength;
             }
             System.out.println(name + " added to weapon slot");
             System.out.println(weapon[0].toString() + " [" + weapon[1].toString() + "]");
@@ -196,10 +215,10 @@ public class Character {
             if (name.contains("Health")){
                 addMaxHp(value);
                 JOptionPane.showMessageDialog(null, "Added " + value + " to max health.");
-            } else if (name.contains("Armor")){
+            } else if (name.contains("Defense")){
                 addDefense(value);
                 JOptionPane.showMessageDialog(null, "Added " + value + " to base defense.");
-            } else if (name.contains("Strength")){
+            } else if (name.contains("Attack")){
                 addStrength(value);
                 JOptionPane.showMessageDialog(null, "Added " + value + " to base strength.");
             }
@@ -242,8 +261,7 @@ public class Character {
             ++i;
             if (i < inventory.length){
                 inv.append("; "); //separate each item with "; "
-            }
-            if (i == inventory.length){
+            } else if (i == inventory.length){
                 inv.append("."); //end with "."
             } else if ((i%5) == 0){
                 inv.append("\n"); //add new line every 5 items, but not after the last one
@@ -258,7 +276,7 @@ public class Character {
         for (Object[] a : armor){ //for each object in inv
             String num = a[1].toString();
             if (num.equals("0")) //if the slot is empty
-                arm.append(armorPieces[i] + " slot is empty"); //say the slot is empty
+                arm.append(ARMOR_PIECES[i] + " slot is empty"); //say the slot is empty
             else
                 arm.append(a[0] + " [" + a[1] + "]"); //add the item to the string in this format: "itemName (prot);"
             ++i;
@@ -333,8 +351,8 @@ public class Character {
     }
 
     public boolean displayInv(){
-        String inv = getInvString() + "\n\n" + getArmorString() + "\n\n" + getWeaponString();
-        String[] options = {"Close", "Equip", "Drop"};
+        String inv = getInvString() + "\n\n" + getArmorString() + "\n\n" + getWeaponString() + "\n\nCoins: " + coins;
+        String[] options = {"Close", "Equip", "Drop", "Stats"};
         int choice = JOptionPane.showOptionDialog(null, inv, "Inventory", JOptionPane.YES_NO_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE, null, options, null);
         if (choice == 1){ //equip
@@ -383,20 +401,49 @@ public class Character {
                 System.out.println("Drop cancelled: " + e);
                 return false;
             }
+        } else if (choice == 3){ //stats
+            String[] enemies = Enemies.getNames();
+            String questStatus;
+            String totalKilled = "";
+            for (int i = 0; i < enemies.length; i++){
+                totalKilled += "\n" + enemies[i] + ": " + killCounters[i];
+            }
+            if (activeQuest[0] == -1) {
+                questStatus = "NONE";
+            } else {
+                questStatus = (killCounters[activeQuest[0]] - activeQuest[3]) + "/" + activeQuest[1] + " " +
+                        enemies[activeQuest[0]] + "s for " + activeQuest[2] + " coins.\nCity at: " +
+                        activeQuest[4] + ", " + activeQuest[5];
+            }
+            String stats = "Class: " + CLASSES[playerClass] + "\nXp: " + xp + "/" + xpNeeded + "\nLevel: " + level +
+                    "\nHP: " + hitPoints + "/" + maxHp + "\n______________\nCurrent/Base:\nAttack: " + attackStrength
+                    + "/" + strength + "\nArmor: " + armorRating + "/" + defense + "\n\nActive Quest:\n" + questStatus +
+                    "\n\nTotal enemies killed:" + totalKilled;
+            JOptionPane.showMessageDialog(null, stats, "Stats", JOptionPane.PLAIN_MESSAGE);
         }
         return false;
     }
 
     public void defend(Enemies monster){
         int attackStrength = monster.attack();
-        if (attackStrength - armorRating <= 0){
+        if (monster.MonName().equals("Dragon")) {
+            int dam;
+            int armorPierce = (int) (Math.random() * 5) + 10;
+            if (attackStrength - armorRating <= 0){
+                dam = armorPierce;
+            } else {
+                dam = (attackStrength - armorRating) + armorPierce;
+            }
+            hitPoints = (hitPoints > dam) ? hitPoints - dam : 0;
+            JOptionPane.showMessageDialog(null, "You took " + dam + " damage");
+        } else if (attackStrength - armorRating <= 0){
             JOptionPane.showMessageDialog(null, "You took 0 damage");
-        }else {
+        } else {
             hitPoints = (hitPoints > (attackStrength - armorRating)) ? hitPoints - (attackStrength - armorRating) : 0;
             JOptionPane.showMessageDialog(null, "You took " + (attackStrength - armorRating) + " damage");
-            if (hitPoints <= 0) {
-                Score.End();
-            }
+        }
+        if (hitPoints <= 0) {
+            Score.End();
         }
     }
 
@@ -420,6 +467,7 @@ public class Character {
 
     public void addMaxHp(int a){
         maxHp += a;
+        addHp(a);
     }
 
     public void addHp(int a){
@@ -464,7 +512,7 @@ public class Character {
             armorRating = (int) saveValues[3][4][1];
             xp = (int) saveValues[3][5][0];
             level = (int) saveValues[3][5][1];
-            xp = (int) saveValues[3][5][2];
+            xpNeeded = (int) saveValues[3][5][2];
             killCounters = (int[])saveValues[3][6][0];
             activeQuest = (int[]) saveValues[3][7][0];
             defense = (int) saveValues[3][8][0];
@@ -532,6 +580,10 @@ public class Character {
 
     public void addKill(int e){
         killCounters[e] += 1;
+        if (activeQuest[1] - (killCounters[e] - activeQuest[3]) <= 0 && !questNotified && activeQuest[0] != -1){
+            JOptionPane.showMessageDialog(null, "Quest complete! Head back to the city to claim the rewards!");
+            questNotified = true;
+        }
     }
 
     public int getKills(int e){

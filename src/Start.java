@@ -48,15 +48,21 @@ public class Start {
             player.setPlayerClass(classChoice);
             Save.initMap();
             player.save();
-            for (int i = 0; i < 5; i++){
-                player.addInventory("Wand", 10 + i * 2);
-            }
-            player.addInventory("Rock", 100);
         }
         else if (selection == 1){ //load existing
             if (!player.load()){ //if user cancelled or clicked x
                 main(args);
                 System.exit(2);
+            }
+        }
+        if (player.getHitPoints() <= 0){
+            if (JOptionPane.showConfirmDialog(null, "Yo, you died. That's irreversible!", "Death is permanent!",
+                    JOptionPane.OK_CANCEL_OPTION) == JOptionPane.CANCEL_OPTION) {
+                JOptionPane.showMessageDialog(null, "I see. You don't give up. I'll give you another chance...",
+                        "ORLLY", JOptionPane.PLAIN_MESSAGE);
+                player.addHp(player.getMaxHp());
+            } else {
+                System.exit(10);
             }
         }
         while (true) {

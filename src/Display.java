@@ -25,9 +25,10 @@ public class Display {
                         map.append(CITY);
                     } else if (Save.getMapAtPos(centerX + MAP_SIZE - i, centerY + MAP_SIZE - j)[0][0].equals("NULL")) {
                         map.append(NOTHING);
+                    } else if (Save.getMapAtPos(centerX + MAP_SIZE - i, centerY + MAP_SIZE - j)[0][0].equals("BOSS")) {
+                        map.append(NOT_GENNED);
                     }
                 } catch (NullPointerException e) {
-                    //System.out.println("Found nothing while drawing map: " + e);
                     map.append(NOT_GENNED);
                 }
             }
@@ -37,7 +38,9 @@ public class Display {
                     map.append(s10 + "Key:");
                     break;
                 case 4:
-                    map.append(s10 + "<span style='font-size:10px'>Player: <span style='font-size:20px'>" + PLAYER);
+                    map.append(s10 + "<span style='font-size:10px'>Player: <span style='font-size:20px'>" + PLAYER +
+                            "<span style='font-size:10px'> (" + Movement.getX() + ", " + Movement.getY() +
+                            ")<span style='font-size:20px'>");
                     break;
                 case 5:
                     map.append(s10 + "<span style='font-size:10px'>City: <span style='font-size:20px'>" + CITY);
@@ -193,8 +196,6 @@ public class Display {
                 } else if (update) {
                     map.setText(getMapString(Movement.getX(), Movement.getY()));
                     dialog.setContentPane(map);
-//                    dialog.add(map, 0);
-//                    dialog.setVisible(true);
                     update = false;
                 }
             }
